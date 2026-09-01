@@ -34,6 +34,8 @@ task profiling {
     # Hardware-related inputs
     Int? hardware_memory_GB = 30
     Int? hardware_preemptible_tries = 2
+
+    String cellprofiler_output_format = "csv"
   }
 
   # Ensure no trailing slashes
@@ -158,6 +160,13 @@ task profiling {
     #Edit ends here-----------------------------------
 
 
+
+    # Convert .txt (tab-separated) files to .csv (comma-separated) if needed
+    if [ "~{cellprofiler_output_format}" = "txt" ]; then
+      echo "Converting .txt (TSV) files to .csv (CSV)..."
+      find /cromwell_root/data -name "*.txt" -exec sh -c 'sed "s/\t/,/g" "$1" > "${1%.txt}.csv" && rm "$1"' _ {} \;
+    fi
+
     # display for log
     echo " "
     echo "===================================="
@@ -258,6 +267,8 @@ workflow cytomining {
     String cellprofiler_analysis_directory_gsurl
     String plate_id
 
+    String cellprofiler_output_format = "csv"
+
     # Pycytominer annotation step
     File plate_map_file
 
@@ -279,6 +290,7 @@ workflow cytomining {
       input:
         cellprofiler_analysis_directory_gsurl = cellprofiler_analysis_directory_gsurl,
         plate_id = plate_id,
+        cellprofiler_output_format = cellprofiler_output_format,
         plate_map_file = plate_map_file,
         output_directory_gsurl = output_directory_gsurl,
     }
